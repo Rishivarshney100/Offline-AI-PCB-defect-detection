@@ -22,10 +22,6 @@ flowchart TD
     D --> E[Severity Estimator]
     E --> F[JSON Output]
     F --> G[Visualization]
-    
-    style A fill:#e1f5ff
-    style C fill:#fff4e1
-    style F fill:#e8f5e9
 ```
 
 ## Features
