@@ -83,12 +83,14 @@ pip install -r requirements.txt
 python src/train.py --data data/dataset.yaml --epochs 50 --batch-size 8 --model s
 ```
 
-**Arguments**:
-- `--data`: Path to dataset.yaml
-- `--epochs`: Training epochs (default: 50)
-- `--batch-size`: Batch size (default: 8)
-- `--model`: Model size n/s/m/l/x (default: s)
-- `--device`: cuda/cpu (auto-detect if not specified)
+### Evaluation
+
+```bash
+python src/evaluate.py --model models/weights/best.pt --data data/dataset.yaml --speed-test
+```
+
+**Metrics**: mAP@0.5, mAP@0.5:0.95, Precision, Recall, F1-score, FPS (checks results folder for results)
+
 
 ### Inference(to test sample PCBs)
 
@@ -118,38 +120,6 @@ The system detects defects, draws colored bounding boxes around them, and displa
   "total_defects": 1
 }
 ```
-
-### Evaluation
-
-```bash
-python src/evaluate.py --model models/weights/best.pt --data data/dataset.yaml --speed-test
-```
-
-**Metrics**: mAP@0.5, mAP@0.5:0.95, Precision, Recall, F1-score, FPS
-
-## Severity Assessment
-
-Calculated based on:
-- **Area Ratio**: Defect area / Image area
-  - Low: < 1%
-  - Medium: 1-5%
-  - High: > 5%
-- **Confidence**: Weighted 30% in calculation
-
-## Performance Targets
-
-- mAP@0.5: > 70% (target), > 50% (minimum)
-- mAP@0.5:0.95: > 40%
-- Inference: 30+ FPS (GPU), 5+ FPS (CPU)
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Model not found | Train model first or download weights |
-| CUDA OOM | Reduce batch size or use `--model n` |
-| No detections | Lower confidence: `--conf 0.1` |
-| Import errors | `pip install -r requirements.txt` |
 
 ## Requirements
 
