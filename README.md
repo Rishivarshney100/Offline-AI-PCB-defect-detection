@@ -1,6 +1,7 @@
 # Offline AI for PCB Defects
 
 Automated PCB defect detection with natural language query interface using YOLOv5 and custom Detection-Grounded VLM.
+
 Note: This Project is based on top of the second task: https://github.com/Rishivarshney100/PCB-defects-Detection
 
 ## Features
