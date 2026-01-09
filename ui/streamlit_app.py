@@ -7,11 +7,14 @@ import sys
 from pathlib import Path
 import tempfile
 import os
+import cv2
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ui.app import create_agent
 from agent.agent import PCBDefectAgent
+from src.utils.visualization import draw_bounding_boxes
 
 
 def main():
@@ -68,10 +71,23 @@ def main():
                 tmp_file.write(uploaded_file.read())
                 tmp_path = tmp_file.name
             
-            st.image(uploaded_file, caption="Uploaded PCB Image", use_container_width=True)
-            
             # Store image path in session state
             st.session_state["current_image"] = tmp_path
+            
+            # Show original image only (no auto-detection) - use same display method as visualization
+            image = cv2.imread(tmp_path)
+            if image is not None:
+                image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                # Resize to max width for consistent display size
+                max_width = 600
+                height, width = image_rgb.shape[:2]
+                if width > max_width:
+                    scale = max_width / width
+                    new_width = max_width
+                    new_height = int(height * scale)
+                    image_rgb = cv2.resize(image_rgb, (new_width, new_height), interpolation=cv2.INTER_AREA)
+                # Use same display settings as visualization for consistent sizing
+                st.image(image_rgb, caption="Uploaded PCB Image", use_container_width=False, channels="RGB")
     
     with col2:
         st.header("Query")
@@ -96,22 +112,85 @@ def main():
                 try:
                     agent = load_agent()
                     with st.spinner("Analyzing image and processing query..."):
+                        # Get detection results
+                        results = agent.analyze_image(st.session_state["current_image"])
+                        defects = results.get("defects", [])
+                        
+                        # Generate response
                         response = agent.answer_query(
                             image_path=st.session_state["current_image"],
                             query=query
                         )
                     
                     st.success("Analysis Complete!")
-                    st.markdown("### Response:")
-                    st.info(response)
                     
-                    # Show detection results
-                    with st.expander("View Detailed Detection Results"):
-                        results = agent.analyze_image(st.session_state["current_image"])
-                        st.json(results)
+                    # Display visualization and response side by side
+                    viz_col, response_col = st.columns([1.2, 0.8])
+                    
+                    with viz_col:
+                        st.markdown("### 🔍 Visualized Results")
+                        # Load image and draw bounding boxes
+                        image = cv2.imread(st.session_state["current_image"])
+                        if image is not None:
+                            # Convert BGR to RGB for display
+                            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                            
+                            # Draw bounding boxes with confidence and severity
+                            if defects:
+                                annotated_image = draw_bounding_boxes(
+                                    image_rgb,
+                                    defects,
+                                    show_confidence=True,
+                                    show_severity=True
+                                )
+                                # Resize to same max width as uploaded image for consistent sizing
+                                max_width = 600
+                                height, width = annotated_image.shape[:2]
+                                if width > max_width:
+                                    scale = max_width / width
+                                    new_width = max_width
+                                    new_height = int(height * scale)
+                                    annotated_image = cv2.resize(annotated_image, (new_width, new_height), interpolation=cv2.INTER_AREA)
+                                # Use same display settings as uploaded image for consistent sizing
+                                st.image(annotated_image, caption="Detected Defects", use_container_width=False, channels="RGB")
+                                
+                                # Show defect count summary
+                                defect_count = len(defects)
+                                defect_types = {}
+                                for defect in defects:
+                                    defect_type = defect.get('defect_type', 'Unknown')
+                                    defect_types[defect_type] = defect_types.get(defect_type, 0) + 1
+                                
+                                st.markdown(f"**Total Defects Found: {defect_count}**")
+                                if defect_types:
+                                    st.markdown("**By Type:**")
+                                    for dtype, count in defect_types.items():
+                                        st.markdown(f"- {dtype}: {count}")
+                            else:
+                                # Resize to same max width as uploaded image for consistent sizing
+                                max_width = 600
+                                height, width = image_rgb.shape[:2]
+                                if width > max_width:
+                                    scale = max_width / width
+                                    new_width = max_width
+                                    new_height = int(height * scale)
+                                    image_rgb = cv2.resize(image_rgb, (new_width, new_height), interpolation=cv2.INTER_AREA)
+                                st.image(image_rgb, caption="No Defects Detected", use_container_width=False, channels="RGB")
+                                st.info("No defects were detected in this image.")
+                    
+                    with response_col:
+                        st.markdown("### 💬 AI Response")
+                        st.info(response)
+                        
+                        # Show detection results in expandable section
+                        with st.expander("📊 View Detailed JSON Results"):
+                            st.json(results)
                 
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
+                    import traceback
+                    with st.expander("Error Details"):
+                        st.code(traceback.format_exc())
     
     # Example queries
     st.markdown("---")

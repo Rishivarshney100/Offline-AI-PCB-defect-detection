@@ -67,8 +67,14 @@ llm:
 
 ### Step 4: Launch the UI
 
+**Option 1: Using main.py**
 ```bash
 python main.py
+```
+
+**Option 2: Direct Streamlit (if `streamlit` command not found, use this)**
+```bash
+python -m streamlit run ui/streamlit_app.py
 ```
 
 The UI will open at `http://localhost:7860`
@@ -132,8 +138,6 @@ python src/infer.py --model models/weights/best.pt --image path/to/image.jpg
 ### UI
 ```bash
 python main.py
-# or
-streamlit run ui/streamlit_app.py
 ```
 
 ### VLM (Natural Language Queries)

@@ -9,7 +9,7 @@ model:
 # Language Model Configuration
 llm:
   # Options: "rule_based" (legacy), "vlm" (new VLM system)
-  type: "rule_based"  # Change to "vlm" to use Detection-Grounded VLM
+  type: "vlm"  # Change to "vlm" to use Detection-Grounded VLM
   
   # VLM Configuration (when type is "vlm")
   vlm_config:
@@ -19,7 +19,7 @@ llm:
     
     # LLM backend: "ollama" (recommended), "llama_cpp", "transformers"
     llm_backend: "ollama"
-    llm_model_name: "phi-2"  # or "qwen-1.5-1.8b", "tinyllama"
+    llm_model_name: "phi"  # or "qwen2.5:1.8b", "tinyllama"
     llm_base_url: "http://localhost:11434"  # For Ollama
     llm_temperature: 0.1  # Low for deterministic output
     llm_max_tokens: 256
