@@ -1,0 +1,62 @@
+# Configuration for PCB Defect AI Agent
+
+# Model Configuration
+model:
+  path: "models/weights/best.pt"
+  confidence_threshold: 0.25
+  device: ""  # Empty string for auto-detect, or "cpu", "cuda", "0", etc.
+
+# Language Model Configuration
+llm:
+  # Options: "rule_based" (legacy), "vlm" (new VLM system)
+  type: "rule_based"  # Change to "vlm" to use Detection-Grounded VLM
+  
+  # VLM Configuration (when type is "vlm")
+  vlm_config:
+    # Detection model (reuses existing YOLOv5)
+    detector_model_path: "models/weights/best.pt"
+    detector_conf_threshold: 0.25
+    
+    # LLM backend: "ollama" (recommended), "llama_cpp", "transformers"
+    llm_backend: "ollama"
+    llm_model_name: "phi-2"  # or "qwen-1.5-1.8b", "tinyllama"
+    llm_base_url: "http://localhost:11434"  # For Ollama
+    llm_temperature: 0.1  # Low for deterministic output
+    llm_max_tokens: 256
+    
+    # Optimization
+    use_quantization: true
+    quantization_type: "int8"
+    use_onnx: true
+    
+    # Output
+    output_format: "json"  # "json" or "natural_language"
+    validate_output: true  # Cross-check against detections
+  
+  # Legacy Ollama configuration (deprecated, use vlm_config instead)
+  ollama:
+    model_name: "llama2"
+    base_url: "http://localhost:11434"
+    temperature: 0.7
+  
+  # Legacy llama.cpp configuration (deprecated)
+  llama_cpp:
+    model_path: ""
+    n_ctx: 2048
+    n_threads: 4
+  
+  # Legacy Transformers configuration (deprecated)
+  transformers:
+    model_name: "microsoft/DialoGPT-medium"
+    device: "cpu"
+
+# UI Configuration
+ui:
+  port: 7860
+  host: "0.0.0.0"
+
+# Response Configuration
+response:
+  include_detailed_results: true
+  max_response_length: 500
+  language: "en"

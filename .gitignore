@@ -39,6 +39,10 @@ data/labels/*
 !data/labels/.gitkeep
 !data/dataset.yaml
 
+# Images folder (50k+ images - too large for git)
+images/
+images/**/*
+
 # PCB Dataset folder (original Kaggle dataset)
 PCB_DATASET/
 PCB_DATASET/**/*
