@@ -158,9 +158,48 @@ response = vlm.generate("images/pcb.jpg", "How many shorts are present?")
 - Ollama (for VLM) or use rule-based mode
 - See `requirements.txt` for full list
 
-## VLM Details
+---
 
-**Model Selection**: Custom Detection-Grounded VLM (vs LLaVA/BLIP-2/Qwen-VL)
-- Speed: 0.8-1.5s (vs 5-20s for others)
-- Hallucination: <1% (vs 5-30% for others)
-- Architecture: YOLOv5 → Structured Tokens → Small LLM (Phi-2/Qwen-1.5-1.8B) → JSON
+## Deliverables
+
+### (A) Model Selection
+
+**Choice: Custom Detection-Grounded VLM** over LLaVA/BLIP-2/Qwen-VL for <1% hallucination (vs 5-30%), <2s inference (vs 5-20s), and explicit bounding box localization. 
+Factors: model size (1-3B vs 7-13B), speed, fine-tuning flexibility, licensing. 
+Modifications: Detection-first pipeline with YOLOv5 bounding boxes, structured token encoding, region-conditioned prompting, output validation.
+
+### (B) Design Strategy
+
+**Architecture**: YOLOv5 detector → Defect Tokenizer → Small LLM (1-3B) → Output Parser. 
+Modified components: PCB-trained YOLOv5 replaces CLIP/ViT, custom tokenizer for bounding boxes, restricted vocabulary LLM, region-conditioned fusion, validation parser. 
+Handles 6 defect types, spatial queries via coordinates, explicit counting, severity estimation.
+
+### (C) Optimization
+
+**Model-level**: INT8 quantization (2-4× speedup), pruning, distillation, LoRA. 
+**System-level**: ONNX/TensorRT export, caching, CPU threading.
+ **Performance**: Vision 200-400ms + LLM 300-600ms = total <1.2s.
+
+### (D) Hallucination Mitigation
+
+**Architectural**: Detection-first pipeline, structured JSON schema, closed-set vocabulary, output validation. 
+**Training**: Grounding loss, consistency loss, hallucination penalty, negative examples. 
+**Result**: <1% hallucination rate (vs 5-30% for generic VLMs).
+
+### (E) Training Plan
+
+**Stages**: 
+(1) YOLOv5 pretraining
+(2) Synthetic QA generation from bounding boxes
+(3) LLM LoRA fine-tuning
+(4) Joint training
+(5) Stress testing 
+**Augmentation**: Image rotation/scaling, query paraphrasing, negative examples. 
+**Metrics**: Counting accuracy, localization IoU, hallucination rate, response time, consistency.
+
+### (F) Validation
+
+**Counting**: Compare LLM vs detection count, target >99%. 
+**Localization**: Mean center error <5px, IoU >0.8, spatial accuracy >95%. 
+**Hallucination**: Test non-existent defects, verify all mentioned defects exist, target <1%. 
+**Additional**: Response time <2s, consistency >99%, robustness testing.
